@@ -36,11 +36,17 @@ resource "aws_iam_instance_profile" "ec2" {
   role = aws_iam_role.ec2.name
 }
 
+resource "aws_key_pair" "main" {
+  key_name   = "${var.project_name}-${var.environment}-key"
+  public_key = file("~/.ssh/id_rsa.pub")
+}
+
 resource "aws_instance" "server" {
   count         = 2
   ami           = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.public.id
+  key_name      = aws_key_pair.main.key_name
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
