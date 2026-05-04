@@ -16,6 +16,12 @@ variable "environment" {
   default     = "prod"
 }
 
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
 variable "slack_webhook_url" {
   description = "Slack webhook URL for alerts"
   type        = string
