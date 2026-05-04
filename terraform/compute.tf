@@ -36,20 +36,27 @@ resource "aws_iam_instance_profile" "ec2" {
   role = aws_iam_role.ec2.name
 }
 
+resource "aws_key_pair" "main" {
+  key_name   = "${var.project_name}-${var.environment}-key"
+  public_key = var.public_key
+}
+
 resource "aws_instance" "server" {
   count         = 2
   ami           = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.public.id
+  key_name      = aws_key_pair.main.key_name
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
-  user_data = base64encode(<<-EOF
+  user_data_base64 = base64encode(<<-EOF
     #!/bin/bash
     yum update -y
     yum install -y amazon-cloudwatch-agent
     mkdir -p /var/log/app
+    chmod 777 /var/log/app
 
     cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CWCONFIG'
     {
@@ -59,7 +66,7 @@ resource "aws_instance" "server" {
             "collect_list": [
               {
                 "file_path": "/var/log/app/application.log",
-                "log_group_name": "/ec2/${var.project_name}/application",
+                "log_group_name": "/ec2/log-alerting/application",
                 "log_stream_name": "{instance_id}",
                 "retention_in_days": 7
               }
@@ -84,10 +91,11 @@ resource "aws_instance" "server" {
       "Memory allocation failed"
       "API rate limit exceeded"
     )
+
     while true; do
       LEVEL=$${LEVELS[$$RANDOM % $${#LEVELS[@]}]}
       MESSAGE=$${MESSAGES[$$RANDOM % $${#MESSAGES[@]}]}
-      echo "$(date '+%Y-%m-%d %H:%M:%S') $$LEVEL: $$MESSAGE" >> /var/log/app/application.log
+      echo "$$(date '+%Y-%m-%d %H:%M:%S') $$LEVEL: $$MESSAGE" >> /var/log/app/application.log
       sleep 60
     done
     SCRIPT
@@ -100,7 +108,8 @@ resource "aws_instance" "server" {
     After=network.target
 
     [Service]
-    ExecStart=/usr/local/bin/log_gen.sh
+    Type=simple
+    ExecStart=/bin/bash /usr/local/bin/log_gen.sh
     Restart=always
 
     [Install]
