@@ -59,7 +59,10 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIR }}
-        run: terraform plan -var="slack_webhook_url=${{ secrets.SLACK_WEBHOOK_URL }}"
+        env:
+          TF_VAR_slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TF_VAR_public_key: ${{ secrets.PUBLIC_KEY }}
+        run: terraform plan
 
   apply:
     name: Apply
