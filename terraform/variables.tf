@@ -27,3 +27,8 @@ variable "slack_webhook_url" {
   type        = string
   sensitive   = true
 }
+
+variable "public_key" {
+  description = "The content of your ssh-rsa public key"
+  type        = string
+}
