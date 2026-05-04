@@ -89,8 +89,8 @@ resource "aws_lambda_function" "alerts" {
 
   environment {
     variables = {
-      SECRET_NAME = aws_secretsmanager_secret.slack_webhook.name
-      AWS_REGION_NAME  = var.aws_region
+      SECRET_NAME     = aws_secretsmanager_secret.slack_webhook.name
+      AWS_REGION_NAME = var.aws_region
     }
   }
 
