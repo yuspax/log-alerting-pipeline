@@ -38,7 +38,7 @@ resource "aws_iam_instance_profile" "ec2" {
 
 resource "aws_key_pair" "main" {
   key_name   = "${var.project_name}-${var.environment}-key"
-  public_key = var.public_key 
+  public_key = var.public_key
 }
 
 resource "aws_instance" "server" {
